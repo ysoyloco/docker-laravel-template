@@ -1,4 +1,5 @@
 FROM php:8.2-fpm-bookworm
+USER root
 
 # Copy composer.lock and composer.json
 COPY composer.lock composer.json /var/www/
@@ -45,14 +46,13 @@ RUN install-php-extensions gd pdo_mysql mysqli mbstring zip exif pcntl intl
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Add user for laravel application
-RUN groupadd -g 1000 nginx
-RUN useradd -u 101 -ms /bin/bash -g nginx nginx
+RUN getent group nginx || groupadd -g 1000 nginx
 
 # Copy existing application directory contents
 COPY . /var/www
 
 # Set proper permissions for Laravel
-RUN chown -R nginx:nginx /var/www \
+RUN mkdir -p /var/www/storage/logs /var/www/bootstrap/cache && chown -R nginx:nginx /var/www && chmod -R 775 /var/www/storage && chmod -R 775 /var/www/bootstrap && chmod -R 775 /var/www/public \
     && chmod -R 775 /var/www \
     && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
